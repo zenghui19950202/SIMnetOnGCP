@@ -3,7 +3,8 @@
 # create SIMdataLoader by reading SIMdata
 # author：zenghui time:2020/3/2
 
-
+import torch
+from torchvision import transforms
 from torch.utils import data
 from PIL import Image
 from torch.utils.data import DataLoader
@@ -28,9 +29,10 @@ class SIM_data(data.Dataset):
         image_directoty = txt_line.split()[0]
         wave_vector = [float(txt_line.split()[1]),float(txt_line.split()[2])]
         phi = float(txt_line.split()[3])
-        SIMdata_images = Image.open(image_directoty)
-
-        return SIMdata_images, wave_vector+[phi]
+        SIMdata_image = Image.open(image_directoty)
+        SIMdata_image_tensor = transforms.ToTensor()(SIMdata_image)
+        wave_vector_phase_tensor = torch.tensor(wave_vector+[phi], dtype=torch.float)
+        return SIMdata_image_tensor,wave_vector_phase_tensor
 
     def __len__(self):
         return len(self.content)
