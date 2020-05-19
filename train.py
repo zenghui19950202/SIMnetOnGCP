@@ -43,6 +43,7 @@ def train(net, train_iter, test_iter, criterion, num_epochs, batch_size, device,
         {'params': bias_p, 'weight_decay': 0}
     ], lr=lr)
 
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4)
 
     # optimizer = optim.Adam(net.parameters(), lr=lr,weight_decay=0)
     epoch_tensor = torch.rand(1)
@@ -64,6 +65,7 @@ def train(net, train_iter, test_iter, criterion, num_epochs, batch_size, device,
                 n += y.shape[0]
 
         test_acc = evaluate_accuracy(test_iter,criterion, net, device)
+        scheduler.step(test_acc)
         print('epoch %d, loss %.4f,valid_loss %.4f, time %.1f sec' \
               % (epoch + 1, train_l_sum / n,test_acc, time.time() - start))
         epoch_tensor[0] = epoch + 1
@@ -96,14 +98,14 @@ if __name__ == '__main__':
     valid_directory_file = "/home/zenghui19950202/SRdataset/test/valid.txt"
 
     SIM_train_dataset = SIM_data(train_directory_file)
-    SIM_valid_dataset = SIM_data(train_directory_file)
+    SIM_valid_dataset = SIM_data(valid_directory_file)
 
     SIM_train_dataloader = DataLoader(SIM_train_dataset, batch_size=4, shuffle=True)
     SIM_valid_dataloader = DataLoader(SIM_valid_dataset, batch_size=4, shuffle=True)
 
-    lr, num_epochs, batch_size, device = 0.005, 20, 4, try_gpu()
+    lr, num_epochs, batch_size, device = 0.1, 200, 16, try_gpu()
     criterion = nn.MSELoss()
-    SIMnet = SIMnetFromResnet(net_name='resnet34')
+    SIMnet = SIMnetFromResnet(net_name='resnet18')
     SIMnet.apply(init_weights)
     train(SIMnet, SIM_train_dataloader, SIM_valid_dataloader, criterion, num_epochs, batch_size, device, lr)
     SIMnet.to('cpu')
